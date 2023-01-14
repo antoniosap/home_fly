@@ -2,7 +2,7 @@
 # home-fly controller 26.4.2022
 # hardware: ESP8266, 3 buttons, 1 LED 4 digits
 # firmware: tasmota 11.1.0
-# for productions rus inside ha-appdaemon add-on
+# for productions run inside ha-appdaemon add-on
 #
 # button left   = meteo: single mostra meteo + meteo unhold, double meteo hold
 # button center = power meter: single mostra power, double mostra clock
@@ -13,9 +13,11 @@ TOPIC_HOME_FLY_RESULT = "stat/tasmota_144AF2/RESULT"
 TOPIC_HOME_FLY_CMND = "cmnd/tasmota_144AF2/"
 TOPIC_HOME_FLY_CMND_DIMMER = TOPIC_HOME_FLY_CMND + "DisplayDimmer"
 TOPIC_HOME_FLY_CMND_DISPLAY_TEXT = TOPIC_HOME_FLY_CMND + "DisplayText"
+TOPIC_HOME_FLY_CMND_DISPLAY_FLOAT = TOPIC_HOME_FLY_CMND + "DisplayFloat"
 TOPIC_HOME_FLY_CMND_DISPLAY_CLOCK = TOPIC_HOME_FLY_CMND + "DisplayClock"
 
 POWER_METER_EVENT = "sensor.total_watt"
+TC_EXTERNAL_ID = "sensor.ewelink_th01_b0071325_temperature"
 METEO_EVENT = "weather.casatorino2022"
 METEO_STATE = METEO_EVENT
 BOILER_STATE = "switch.boiler"
@@ -50,7 +52,8 @@ METEO_TEXT = {
     "snowy-rainy": "NEVP",
     "sunny": "SOLE",
     "windy": "VENT",
-    "windy-variant": "PVEN"
+    "windy-variant": "PVEN",
+    "unavailable": "-nd-"
 }
 
 
@@ -102,6 +105,9 @@ class HomeFly(hass.Hass):
                 else:
                     self.call_service("switch/turn_off", entity_id=ENTITY_SWITCH_BOILER)
                     self.mqtt.mqtt_publish(TOPIC_HOME_FLY_CMND_DISPLAY_TEXT, "OFF")
+            elif (Button3 == 'DOUBLE'):
+                tcExternal = self.get_entity(TC_EXTERNAL_ID)
+                self.mqtt.mqtt_publish(TOPIC_HOME_FLY_CMND_DISPLAY_TEXT, f"{float(tcExternal.get_state()):.1f}".replace('.', '`'))
 
     def displayUpdate(self, *args, **kwargs):
         weekday = dt.datetime.now().weekday() + 1  # lun == 1
@@ -148,6 +154,8 @@ class HomeFly(hass.Hass):
             self.mqtt.mqtt_publish(TOPIC_HOME_FLY_CMND_DISPLAY_TEXT, self.totalW)
 
     def meteoEvent(self, event_name, data, *args, **kwargs):
-        self.meteoText = METEO_TEXT[data['new_state']['state']]
+        try:
+            self.meteoText = METEO_TEXT[data['new_state']['state']]
+        except KeyError:
+            self.meteoText = '-nd-'
         self.mqtt.mqtt_publish(TOPIC_HOME_FLY_CMND_DISPLAY_TEXT, self.meteoText)
-
