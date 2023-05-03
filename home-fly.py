@@ -178,7 +178,11 @@ class HomeFly(hass.Hass):
 
     def meteoDisplay(self):
         device_tc_ext = self.get_entity(TC_EXTERNAL_ID)
-        value = f"{float(device_tc_ext.get_state()):.1f}^".replace('.', '`')
+        value_tc_ext = device_tc_ext.get_state()
+        if value_tc_ext == 'unavailable':
+            value = f"{METEO_TEXT['unavailable']}"
+        else:
+            value = f"{float(device_tc_ext.get_state()):.1f}^".replace('.', '`')
         self.mqtt.mqtt_publish(TOPIC_HOME_FLY_CMND_DISPLAY_TEXT, value)
 
     def powerMeterEvent(self, event_name, data, *args, **kwargs):
