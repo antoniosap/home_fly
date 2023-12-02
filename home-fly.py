@@ -19,8 +19,9 @@ TOPIC_HOME_FLY_CMND_DISPLAY_SCROLL = TOPIC_HOME_FLY_CMND + "DisplayScrollText"
 
 DISPLAY_LEN = 4
 POWER_METER_EVENT = "sensor.total_watt"
-# TC_EXTERNAL_ID = "sensor.ewelink_th01_b0071325_temperature"   guasto 4.9.2023
-TC_EXTERNAL_ID = "sensor.sonoff_th_am2301_temperature"
+# TC_EXTERNAL_ID = "sensor.ewelink_th01_b0071325_temperature"  # guasto 4.9.2023
+# TC_EXTERNAL_ID = "sensor.sonoff_th_am2301_temperature"       # dal 2.12.2023 è il sensore bagno
+TC_EXTERNAL_ID = "sensor.sht41_sn2_sht4x_temperature"          # nuovo sensore di precisione per esterno
 METEO_EVENT = "weather.casatorino2022"
 METEO_STATE = METEO_EVENT
 BOILER_STATE = "switch.boiler"
@@ -135,11 +136,11 @@ class HomeFly(hass.Hass):
             self.meteoDisplay()
         else:
             # power meter time range
-            if ((self.now_is_between("18:00:00", "22:00:00") or
-                 self.now_is_between("05:00:00", "07:00:00")) and
+            if ((self.now_is_between("19:00:00", "21:00:00") or
+                 self.now_is_between("19:00:00", "21:00:00")) and
                     weekday in [1, 2, 3, 4, 5]):
                 self.displayState = DISPLAY_STATE_POWER_METER
-            if ((self.now_is_between("05:00:00", "23:00:00")) and
+            if ((self.now_is_between("19:00:00", "21:00:00")) and
                     weekday in [6, 7]):
                 self.displayState = DISPLAY_STATE_POWER_METER
         #
